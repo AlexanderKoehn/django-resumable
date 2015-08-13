@@ -4,6 +4,7 @@ var DjangoResumable = function (options) {
     options = options || {};
     defaults = {
         csrfInputName: 'csrfmiddlewaretoken',
+        drop: false,
         urlAttribute: 'data-upload-url',
         progressDisplay: 'inline',
         errorListClass: 'errorlist',
@@ -15,12 +16,21 @@ var DjangoResumable = function (options) {
     };
     this.options = this.extend(defaults, options);
     this.csrfToken = document.querySelector('input[name=' + this.options.csrfInputName + ']').value;
-    els = document.querySelectorAll('input[' + this.options.urlAttribute + ']');
+    if (this.options['drop'])  {
+        els = document.querySelectorAll('div[' + this.options.urlAttribute + '].resumable_drop_zone');
+        $(els).bind('dragenter dragover', function() {
+            $(this).addClass("hover")
+        }).bind('drop dragleave', function() {
+            $(this).removeClass("hover")
+        });
+    } else {
+        els = document.querySelectorAll('input[' + this.options.urlAttribute + ']');
+    }
     this.each(els, function (el) {
         this.initField(el);
     });
 };
-
+{}
 
 DjangoResumable.prototype.each = function (elements, fn) {
     "use strict";
@@ -95,7 +105,7 @@ DjangoResumable.prototype.initProgressBar = function () {
     "use strict";
     var progress = document.createElement('progress');
     progress.setAttribute('value', '0');
-    progress.setAttribute('max', '1');
+    progress.setAttribute('max', '100');
     progress.style.display = 'none';
     return progress;
 };
@@ -114,7 +124,11 @@ DjangoResumable.prototype.initResumable = function (el, progress, filePath, file
 
     opts = this.extend(this.options.resumableOptions, opts);
     var r = new Resumable(opts);
-    r.assignBrowse(el);
+    if (this.options['drop']) {
+        r.assignDrop(el);
+    } else {
+        r.assignBrowse(el);
+    }
     this.each(['fileAdded', 'progress', 'fileSuccess', 'fileError'], function (eventType) {
         var callback = this.options['on' + eventType.substring(0, 1).toUpperCase() + eventType.substring(1)];
         r.on(eventType, function () {
@@ -159,5 +173,5 @@ DjangoResumable.prototype.onFileSuccess = function (r, file, message, el, progre
 
 DjangoResumable.prototype.onProgress = function (r, el, progress, filePath, fileName) {
     "use strict";
-    progress.setAttribute('value', r.progress());
+    progress.setAttribute('value', r.progress() * 100.0);
 };

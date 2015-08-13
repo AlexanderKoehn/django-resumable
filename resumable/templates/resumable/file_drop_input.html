@@ -1,0 +1,9 @@
+<div class="upload_area">
+    <input id="id_{{ filename_input_name }}" type="hidden" name="{{ filename_input_name }}" value="{{ filename_input_value }}" />
+    <div class="resumable_drop_zone" name="{{ file_input_name }}"
+       {% for name, value in attrs.iteritems %}
+            {{ name }}{% if value != True %}="{{ value }}"{% endif %}
+       {% endfor %}><label for="id_{{ filename_input_name }}">
+        {% if filename %}{{ filename }}{% else %}Drop zip file here{% endif %}
+    </label></div>
+</div>
